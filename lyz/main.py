@@ -23,7 +23,7 @@ def Z(N, beta):
 
 def calculate_lyz(N):
     beta = smp.symbols(r'\beta', complex=True)
-    Z_expr = Z(N, beta).subs({hbar: 1, omega_0: 1})
+    Z_expr = Z(N, beta)
     Z_polynom = smp.Poly(Z_expr)
     lyz = np.roots(Z_polynom.all_coeffs())
     # We solve the roots for 1/beta.
@@ -34,9 +34,9 @@ def calculate_lyz(N):
 def main():
     MIN_N = 2
     MAX_N = 20
-    k_b = 1.380649e-23  # J*K^-1
+    k_b = 1  # 1.380649e-23 J*K^-1
     T_c = (hbar * omega_0 / k_b) * ((MAX_N / smp.zeta(d)) ** (1 / d))  # Equation (5). Where zeta(3) ~= 1.2
-    beta_c = (1 / (k_b * T_c)).evalf()
+    beta_c = 1 if d == 1 else (1 / (k_b * T_c)).evalf()
 
     lyz_re = []
     lyz_im = []
@@ -51,7 +51,6 @@ def main():
     except KeyboardInterrupt:
         pass
 
-    # TODO: Currently this is recreating Fig 1 panel (c)
     fig, ax = plt.subplots()
     scatter = ax.scatter(np.array(lyz_re) / beta_c, np.array(lyz_im) / beta_c,
                          c=color_scale, vmin=MIN_N, vmax=MAX_N, cmap='Blues')
@@ -60,8 +59,8 @@ def main():
     cbar.set_label('N')
     ax.set_xlabel(r'Re $\beta / \beta_c$')
     ax.set_ylabel(r'Im $\beta / \beta_c$')
-    # ax.set_xlim([0.2, 1.5])
-    # ax.set_ylim([-2, 2])
+    ax.set_xlim([0.2, 1.5])
+    ax.set_ylim([-2, 2])
     ax.axhline(0, color='black', linewidth=1)
     plt.show()
 
