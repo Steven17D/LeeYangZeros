@@ -9,6 +9,7 @@ from matplotlib import pyplot as plt
 
 d = 3
 hbar, omega_0 = 1, 1  # hbar is 1.0545718e-34
+k_b = 1  # 1.380649e-23 J*K^-1
 
 
 @cache
@@ -31,11 +32,25 @@ def calculate_lyz(N):
     return lyz
 
 
+def calculate_T_c(N):
+    """
+    Calculate T_c according to equation (5) and equation (24).
+    :param N: Number of particles
+    :return: Critical temperature
+    """
+    if d == 2:
+        return (hbar * omega_0 / k_b) * ((N / smp.zeta(d)) ** (1 / d))  # Equation (5)
+    if d == 3:
+        T_c = smp.Symbol('T_c')
+        T_c_solution, *_ = smp.solve(smp.Eq(T_c, (hbar * omega_0 / k_b) * ((N / smp.zeta(d)) ** (1 / d)) * ((1 + ((3/2) * (smp.zeta(2) /smp.zeta(3)) * (hbar * omega_0 / (k_b * T_c)))) ** (-1/3))))
+        return T_c_solution
+    raise ValueError("Only 3D and 2D are supported")
+
+
 def main():
     MIN_N = 2
     MAX_N = 20
-    k_b = 1  # 1.380649e-23 J*K^-1
-    T_c = (hbar * omega_0 / k_b) * ((MAX_N / smp.zeta(d)) ** (1 / d))  # Equation (5). Where zeta(3) ~= 1.2
+    T_c = calculate_T_c(MAX_N)
     beta_c = 1 if d == 1 else (1 / (k_b * T_c)).evalf()
 
     lyz_re = []
