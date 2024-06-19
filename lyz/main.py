@@ -11,7 +11,7 @@ omega_0 = 1
 
 
 @cache
-def P(N, y):
+def P(N, y, d):
     """
     Equation (7) in the paper "Thermodynamic fermion-boson symmetry in harmonic oscillator potentials"
     https://arxiv.org/pdf/cond-mat/9810036
@@ -20,7 +20,7 @@ def P(N, y):
         return 1
 
     return ((1 / smp.Integer(N)) * sum(
-        ((math.prod((1 - y**j) ** 3 for j in range(N - n + 1, N + 1))) / ((1 - y**n) ** 3)) * P(N - n, y)
+        ((math.prod((1 - y**j) ** d for j in range(N - n + 1, N + 1))) / ((1 - y**n) ** d)) * P(N - n, y, d)
         for n in range(1, N + 1)
     )).simplify()
 
@@ -34,9 +34,9 @@ def Z(N, y):
     return ((y ** (smp.Integer(N) * 3 / 2)) / math.prod((1 - y ** j) ** 3 for j in range(1, N + 1))) * P(N, y)
 
 
-def calculate_lyz(N):
+def calculate_lyz(N, d):
     y = smp.symbols('y')
-    P_expr = P(N, y)
+    P_expr = P(N, y, d)
     P_poly = P_expr.simplify().as_poly()
     y_zeros = np.roots(P_poly.all_coeffs())
     lyz = np.log(y_zeros) / (- hbar * omega_0)
@@ -64,7 +64,7 @@ def calculate_T_c(N, d):
 
 
 def main():
-    d = 3
+    d = 2
     MIN_N = 2
     MAX_N = 20
 
@@ -73,9 +73,9 @@ def main():
     color_scale = []
     try:
         for N in range(MIN_N, MAX_N + 1):
-            lyz = calculate_lyz(N)
+            lyz = calculate_lyz(N, d)
             beta_c = (1 / (k_b * calculate_T_c(N, d)))
-            print(f"N={N} Found roots({len(lyz)}): {lyz}")
+            print(f"N={N}, critical value is {beta_c}. Found roots({len(lyz)}): {lyz}")
             lyz_re += [smp.re(z_0) / beta_c for z_0 in lyz]
             lyz_im += [smp.im(z_0) / beta_c for z_0 in lyz]
             color_scale += [N] * len(lyz)
@@ -84,12 +84,11 @@ def main():
 
     fig, ax = plt.subplots()
     scatter = ax.scatter(np.array(lyz_re), np.array(lyz_im),
-                         c=color_scale, vmin=MIN_N, vmax=N, cmap='Blues')
-    ax.scatter(1, 0, c='red')
+                         c=color_scale, vmin=MIN_N, vmax=N, s=12, cmap='Blues')
     cbar = plt.colorbar(scatter, ax=ax)
     cbar.set_label('N')
-    ax.set_xlabel(r'Re $\beta / \beta_c$')
-    ax.set_ylabel(r'Im $\beta / \beta_c$')
+    ax.set_xlabel(r'$Re~\beta / \beta_c$')
+    ax.set_ylabel(r'$Im~\beta / \beta_c$')
     ax.set_xlim([0.3, 1.5])
     ax.set_ylim([-2, 2])
     ax.axhline(0, color='black', linewidth=1)
