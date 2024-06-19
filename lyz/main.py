@@ -74,17 +74,16 @@ def main():
     try:
         for N in range(MIN_N, MAX_N + 1):
             lyz = calculate_lyz(N)
+            beta_c = (1 / (k_b * calculate_T_c(N, d)))
             print(f"N={N} Found roots({len(lyz)}): {lyz}")
-            lyz_re += [smp.re(z_0) for z_0 in lyz]
-            lyz_im += [smp.im(z_0) for z_0 in lyz]
+            lyz_re += [smp.re(z_0) / beta_c for z_0 in lyz]
+            lyz_im += [smp.im(z_0) / beta_c for z_0 in lyz]
             color_scale += [N] * len(lyz)
     except KeyboardInterrupt:
         N = N - 1
 
-    beta_c = (1 / (k_b * calculate_T_c(N, d)))
-
     fig, ax = plt.subplots()
-    scatter = ax.scatter(np.array(lyz_re) / beta_c, np.array(lyz_im) / beta_c,
+    scatter = ax.scatter(np.array(lyz_re), np.array(lyz_im),
                          c=color_scale, vmin=MIN_N, vmax=N, cmap='Blues')
     ax.scatter(1, 0, c='red')
     cbar = plt.colorbar(scatter, ax=ax)
